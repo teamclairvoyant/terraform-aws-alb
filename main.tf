@@ -98,7 +98,7 @@ module "default_target_group_label" {
 }
 
 resource "aws_lb_target_group" "default" {
-  count                = module.this.enabled && var.default_target_group_enabled ? 1 : 0
+  count                         = module.this.enabled && var.default_target_group_enabled ? 1 : 0
   name                          = var.target_group_name == "" ? module.default_target_group_label.id : substr(var.target_group_name, 0, var.target_group_name_max_length)
   port                          = var.target_group_port
   protocol                      = var.target_group_protocol
@@ -106,6 +106,8 @@ resource "aws_lb_target_group" "default" {
   target_type                   = var.target_group_target_type
   deregistration_delay          = var.deregistration_delay
   load_balancing_algorithm_type = var.load_balancing_algorithm_type
+  slow_start                    = var.slow_start
+
 
   health_check {
     protocol            = var.target_group_protocol
