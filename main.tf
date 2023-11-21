@@ -39,8 +39,9 @@ resource "aws_security_group_rule" "https_ingress" {
 }
 
 module "access_logs" {
+
   source                             = "cloudposse/lb-s3-bucket/aws"
-  version                            = "0.14.1"
+  version                            = "0.19.0"
   enabled                            = module.this.enabled && var.access_logs_enabled && var.access_logs_s3_bucket_id == null
   attributes                         = compact(concat(module.this.attributes, ["alb", "access", "logs"]))
   lifecycle_rule_enabled             = var.lifecycle_rule_enabled
@@ -83,7 +84,7 @@ resource "aws_lb" "default" {
   drop_invalid_header_fields       = var.drop_invalid_header_fields
 
   access_logs {
-    bucket  = try(element(compact([var.access_logs_s3_bucket_id, module.access_logs.bucket_id]), 0), "")
+    bucket  = module.this.enabled && var.access_logs_enabled && var.access_logs_s3_bucket_id == null ? module.access_logs[0].bucket_id : var.access_logs_s3_bucket_id
     prefix  = var.access_logs_prefix
     enabled = var.access_logs_enabled
   }
@@ -98,13 +99,16 @@ module "default_target_group_label" {
 }
 
 resource "aws_lb_target_group" "default" {
-  count                = module.this.enabled && var.listener_http_fixed_response == null && var.listener_https_fixed_response == null ? 1 : 0
-  name                 = var.target_group_name == "" ? module.default_target_group_label.id : substr(var.target_group_name, 0, var.target_group_name_max_length)
-  port                 = var.target_group_port
-  protocol             = var.target_group_protocol
-  vpc_id               = var.vpc_id
-  target_type          = var.target_group_target_type
-  deregistration_delay = var.deregistration_delay
+  count                         = module.this.enabled && var.default_target_group_enabled ? 1 : 0
+  name                          = var.target_group_name == "" ? module.default_target_group_label.id : substr(var.target_group_name, 0, var.target_group_name_max_length)
+  port                          = var.target_group_port
+  protocol                      = var.target_group_protocol
+  vpc_id                        = var.vpc_id
+  target_type                   = var.target_group_target_type
+  deregistration_delay          = var.deregistration_delay
+  load_balancing_algorithm_type = var.load_balancing_algorithm_type
+  slow_start                    = var.slow_start
+
 
   health_check {
     protocol            = var.target_group_protocol

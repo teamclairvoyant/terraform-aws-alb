@@ -140,10 +140,22 @@ variable "deregistration_delay" {
   description = "The amount of time to wait in seconds before changing the state of a deregistering target to unused"
 }
 
+variable "slow_start" {
+  type        = number
+  default     = null
+  description = "The amount of time (30-900 seconds) until a healthy target receives its full share of requests from the load balancer. 0 to disable."
+}
+
 variable "drop_invalid_header_fields" {
   type        = bool
   default     = false
   description = "Indicates whether HTTP headers with header fields that are not valid are removed by the load balancer (true) or routed to targets (false)."
+}
+
+variable "load_balancing_algorithm_type" {
+  type        = string
+  default     = "round_robin"
+  description = "Determines how the load balancer selects targets when routing requests"
 }
 
 variable "health_check_path" {
@@ -323,4 +335,10 @@ variable "load_balancer_name_max_length" {
   type        = number
   default     = 32
   description = "The max length of characters for the load balancer."
+}
+
+variable "default_target_group_enabled" {
+  type        = bool
+  description = "Whether the default target group should be created or not."
+  default     = true
 }
